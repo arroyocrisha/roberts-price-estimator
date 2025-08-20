@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radiator Price Estimator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Prevent font flashing on slow connections */
+    body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="root"></div>
+
+  <!-- React & Babel (for JSX in a single file demo) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    function RadiatorPriceEstimator() {
+      const [rows, setRows] = useState("");
+      const [height, setHeight] = useState("");
+      const [width, setWidth] = useState("");
+
+      const hNum = Number(height);
+      const wNum = Number(width);
+
+      const currency = new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        minimumFractionDigits: 2,
+      });
+
+      const priceResult = useMemo(() => {
+        const h = hNum;
+        const w = wNum;
+        const r = Number(rows);
+
+        // Hide output until a row is selected
+        if (!rows) return { label: "" };
+
+        if (!height || !width) return { label: "Php 0.00" };
+        if ([h, w].some((n) => Number.isNaN(n))) return { label: "Please enter numbers" };
+
+        // Supported general range (retain safety)
+        if ([h, w].some((n) => n < 5 || n > 52)) {
+          return {
+            label: "Out of supported size",
+            note: "Supported measurements are 5–52 inches for both height and width.",
+          };
+        }
+
+        const sizeKey = Math.max(h, w);
+
+        // Updated brackets and base prices (PHP) from your latest message
+        const oneRow = [
+          [10, 2545.13],
+          [20, 4063.05],
+          [30, 6058.72],
+          [40, 8824.79],
+          [50, 12263.72],
+          [52, 13032.25],
+        ];
+
+        const twoRow = [
+          [10, 3061.51],
+          [20, 5397.59],
+          [30, 8899.14],
+          [40, 13566.15],
+          [50, 19398.62],
+          [52, 20704.97],
+        ];
+
+        const threeRow = [
+          [10, 3577.44],
+          [20, 6559.13],
+          [30, 11161.11],
+          [40, 17146.93],
+          [50, 24634.81],
+          [52, 26312.63],
+        ];
+
+        const fourRow = [
+          [10, 4545.89],
+          [20, 8384.48],
+          [30, 14144.44],
+          [40, 21589.33],
+          [50, 30837.37],
+          [52, 32903.36],
+        ];
+
+        const fiveRow = [
+          [10, 5378.35],
+          [20, 9963.56],
+          [30, 16842.16],
+          [40, 25631.93],
+          [50, 36523.98],
+          [52, 38954.67],
+        ];
+
+        const sixRow = [
+          [10, 6038.89],
+          [20, 11455.22],
+          [30, 19517.15],
+          [40, 29842.46],
+          [50, 42622.26],
+          [52, 45472.76],
+        ];
+
+        const table =
+          r === 1 ? oneRow :
+          r === 2 ? twoRow :
+          r === 3 ? threeRow :
+          r === 4 ? fourRow :
+          r === 5 ? fiveRow :
+          r === 6 ? sixRow :
+          undefined;
+
+        if (!table) return { label: "" };
+
+        const match = table.find(([max]) => sizeKey <= max);
+        if (!match) return { label: "Out of supported size" };
+
+        const base = match[1];
+        const total = base * 2.6; // total = base × 2.6
+        return { value: total, label: currency.format(total) };
+      }, [rows, hNum, wNum, height, width]);
+
+      const labelSm = "text-sm font-medium text-gray-600";
+      const inputCls =
+        "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:opacity-60 disabled:cursor-not-allowed";
+
+      return (
+        <div className="min-h-screen w-full bg-gray-50">
+          <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+            {/* Back link */}
+            <div className="mb-4 flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path fillRule="evenodd" d="M9.53 4.47a.75.75 0 010 1.06L5.81 9.25H21a.75.75 0 010 1.5H5.81l3.72 3.72a.75.75 0 11-1.06 1.06l-5-5a.75.75 0 010-1.06l5-5a.75.75 0 011.06 0z" clipRule="evenodd" />
+              </svg>
+              <button className="underline decoration-dotted underline-offset-4">Back to Automotive Radiators</button>
+            </div>
+
+            {/* Two-column layout */}
+            <div className="grid items-start gap-8 md:grid-cols-2">
+              {/* Left: Image */}
+              <div className="overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5">
+                <img
+                  alt="Mechanic welding / automotive fabrication"
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  src="https://images.unsplash.com/photo-1554072675-66b9d8a57b37?q=80&w=1600&auto=format&fit=crop"
+                  onError={(e) => {
+                    const tried = e.currentTarget.getAttribute('data-fallback') || '0';
+                    if (tried === '0') {
+                      e.currentTarget.setAttribute('data-fallback', '1');
+                      e.currentTarget.src =
+                        'https://images.unsplash.com/photo-1549407972-31b1bd32f87a?q=80&w=1600&auto=format&fit=crop';
+                    } else {
+                      e.currentTarget.src = 'https://placehold.co/1600x1067?text=Automotive+Fabrication';
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Right: Estimator Card */}
+              <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">QUICK PRICE ESTIMATE</h1>
+                <p className="mt-2 text-sm text-gray-600">Get an instant cost estimate tailored to your needs. Simple, fast, and hassle‑free.</p>
+
+                <div className="mt-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Radiator Size <span className="text-gray-500">(Inches)</span></h2>
+
+                  {/* Inputs in one line: [Rows] [Width] [Height] */}
+                  <div className="mt-3 grid grid-cols-3 gap-4">
+                    <div>
+                      <label className={labelSm}>Rows</label>
+                      <select className={inputCls} value={rows} onChange={(e) => setRows(e.target.value)}>
+                        <option value="" disabled>Select rows</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelSm}>Width</label>
+                      <input className={inputCls} inputMode="decimal" placeholder="e.g., 17" value={width} onChange={(e) => setWidth(e.target.value)} disabled={!rows} />
+                    </div>
+                    <div>
+                      <label className={labelSm}>Height</label>
+                      <input className={inputCls} inputMode="decimal" placeholder="e.g., 24" value={height} onChange={(e) => setHeight(e.target.value)} disabled={!rows} />
+                    </div>
+                  </div>
+
+                  {/* Estimated price line (only after a row is chosen) */}
+                  {rows && (
+                    <div className="mt-6">
+                      <div className="flex items-baseline gap-3">
+                        <p className="text-sm font-medium text-gray-600">Total Estimated Price</p>
+                        <p className="text-2xl font-bold text-emerald-700">{priceResult.label}</p>
+                      </div>
+                      {priceResult.note && (
+                        <p className="mt-1 text-xs text-gray-500">{priceResult.note}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Disclaimer below price */}
+                  <div className="mt-6 text-xs text-gray-500">
+                    <p><strong>Disclaimer:</strong> This estimator provides only average pricing. Actual cost may vary. For precise and customized fabrication, please request a quote.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Center CTA below photo and estimator */}
+            <div className="mt-10 flex justify-center">
+              <button className="rounded-xl bg-emerald-600 px-6 py-4 text-white text-base font-semibold shadow-sm transition hover:bg-emerald-700">
+                Get My Free Quote
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<RadiatorPriceEstimator />);
+  </script>
+</body>
+</html>
